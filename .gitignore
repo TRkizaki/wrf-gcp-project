@@ -1,0 +1,10 @@
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+.terraform.lock.hcl
+
+# Credentials (never commit these!)
+*.json
+credentials/
