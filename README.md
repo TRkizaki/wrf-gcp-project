@@ -16,7 +16,7 @@
 | **Team Size** | 1 person |
 | **Evaluation Criteria** | Execution time, Cost optimization, Reproducibility (IaC) |
 
-## 🏗️ Architecture
+##  Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
@@ -79,7 +79,7 @@
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
-## 💰 Cost Comparison: On-Demand vs Spot VM
+##  Cost Comparison: On-Demand vs Spot VM
 
 ### Test Configuration
 
@@ -210,7 +210,7 @@ gsutil -m cp -r gs://$(terraform output -raw bucket_name)/runs/TIMESTAMP/ ./loca
 terraform destroy
 ```
 
-## ⚙️ Configuration Options
+##  Configuration Options
 
 ### Terraform Variables
 
@@ -343,4 +343,4 @@ MIT License - See [LICENSE](LICENSE) for details.
 
 **Author:** Tetsurou Kizaki
 **Date:** January 2026  
-**Course:** Master's Thesis Research — Computer Network Security
+**Course:** Advanced Cloud Computing — Computer Network Security
