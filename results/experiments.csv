@@ -1,0 +1,2 @@
+run_id,date,case,machine_type,vcpu,spot,run_minutes,t_setup_s,t_build_s,t_run_s,t_wrf_s,t_upload_s,t_total_s,wrfout_mb,hourly_usd,billed_hours,cost_est_usd,status,notes
+20260427T173006Z-em_quarter_ss-60min,2026-04-27,em_quarter_ss,e2-standard-2,2,true,60,,,,38,,1085,116,0.020,0.302,0.006,SUCCESS,baseline pre-instrumentation; only t_wrf_s and t_total_s available

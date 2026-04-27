@@ -8,3 +8,7 @@
 # Credentials (never commit these!)
 *.json
 credentials/
+
+# Experiment outputs (large WRF binaries)
+results/run*/
+!results/experiments.csv

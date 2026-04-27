@@ -6,6 +6,8 @@ exec > >(tee -a /var/log/wrf-startup.log) 2>&1
 
 export DEBIAN_FRONTEND=noninteractive
 
+T_SCRIPT_START=$(date +%s)
+
 echo "=========================================="
 echo "WRF Startup Script - $(date -u +%Y-%m-%dT%H:%M:%SZ)"
 echo "=========================================="
@@ -23,11 +25,15 @@ get_metadata() {
 WRF_RUN_MINUTES=$(get_metadata "wrf-run-minutes" "60")
 WRF_CASE=$(get_metadata "wrf-case" "em_quarter_ss")
 GCS_BUCKET=$(get_metadata "gcs-bucket" "")
+MACHINE_TYPE=$(get_metadata "machine-type" "unknown")
+USE_SPOT=$(get_metadata "use-spot" "false")
 
 echo "Configuration:"
 echo "  WRF_RUN_MINUTES: ${WRF_RUN_MINUTES}"
 echo "  WRF_CASE: ${WRF_CASE}"
 echo "  GCS_BUCKET: ${GCS_BUCKET}"
+echo "  MACHINE_TYPE: ${MACHINE_TYPE}"
+echo "  USE_SPOT: ${USE_SPOT}"
 
 if [ -z "${GCS_BUCKET}" ]; then
   echo "ERROR: gcs-bucket metadata not set"
@@ -74,6 +80,8 @@ if [ ! -f "${MARKER_FILE}" ]; then
   
   echo "Dependencies installed."
 fi
+
+T_SETUP_END=$(date +%s)
 
 # -------------------------
 # Build WRF Docker image (if not exists)
@@ -139,6 +147,8 @@ else
   echo "Docker image already exists: ${IMAGE_NAME}"
 fi
 
+T_BUILD_END=$(date +%s)
+
 # -------------------------
 # Run WRF simulation
 # -------------------------
@@ -149,6 +159,8 @@ echo "  Duration: ${WRF_RUN_MINUTES} minutes"
 RUN_ID="${TS}-${WRF_CASE}-${WRF_RUN_MINUTES}min"
 RUN_OUTPUT_DIR="${WRF_OUTPUT_DIR}/${RUN_ID}"
 mkdir -p "${RUN_OUTPUT_DIR}"
+
+T_RUN_START=$(date +%s)
 
 docker run --rm \
   -v "${RUN_OUTPUT_DIR}:/output" \
@@ -183,6 +195,8 @@ cp -v wrfout* wrfinput* namelist.input rsl.* /output/ 2>/dev/null || true
 echo \${ELAPSED} > /output/elapsed_seconds.txt
 "
 
+T_RUN_END=$(date +%s)
+
 # -------------------------
 # Upload to GCS
 # -------------------------
@@ -190,6 +204,14 @@ echo "Uploading results to GCS..."
 GCS_PATH="gs://${GCS_BUCKET}/runs/${RUN_ID}/"
 
 gsutil -m cp -r "${RUN_OUTPUT_DIR}/*" "${GCS_PATH}"
+
+T_UPLOAD_END=$(date +%s)
+
+T_SETUP_S=$((T_SETUP_END - T_SCRIPT_START))
+T_BUILD_S=$((T_BUILD_END - T_SETUP_END))
+T_RUN_S=$((T_RUN_END - T_RUN_START))
+T_UPLOAD_S=$((T_UPLOAD_END - T_RUN_END))
+T_TOTAL_S=$((T_UPLOAD_END - T_SCRIPT_START))
 
 # Create a summary file
 cat > "${RUN_OUTPUT_DIR}/summary.json" << EOF
@@ -199,8 +221,15 @@ cat > "${RUN_OUTPUT_DIR}/summary.json" << EOF
   "hostname": "${HOST}",
   "wrf_case": "${WRF_CASE}",
   "run_minutes": ${WRF_RUN_MINUTES},
+  "machine_type": "${MACHINE_TYPE}",
+  "use_spot": ${USE_SPOT},
   "gcs_path": "${GCS_PATH}",
-  "elapsed_seconds": $(cat "${RUN_OUTPUT_DIR}/elapsed_seconds.txt" 2>/dev/null || echo "null")
+  "elapsed_seconds": $(cat "${RUN_OUTPUT_DIR}/elapsed_seconds.txt" 2>/dev/null || echo "null"),
+  "t_setup_s": ${T_SETUP_S},
+  "t_build_s": ${T_BUILD_S},
+  "t_run_s": ${T_RUN_S},
+  "t_upload_s": ${T_UPLOAD_S},
+  "t_total_s": ${T_TOTAL_S}
 }
 EOF
 
