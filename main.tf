@@ -136,6 +136,8 @@ resource "google_compute_instance" "wrf_runner" {
     wrf-run-minutes = var.wrf_run_minutes
     wrf-case        = var.wrf_case
     gcs-bucket      = google_storage_bucket.wrf_data.name
+    machine-type    = var.machine_type
+    use-spot        = var.use_spot ? "true" : "false"
     enable-oslogin  = "TRUE"
   }
 
