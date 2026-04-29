@@ -12,3 +12,6 @@ credentials/
 # Experiment outputs (large WRF binaries)
 results/run*/
 !results/experiments.csv
+
+# Python venv
+.venv/

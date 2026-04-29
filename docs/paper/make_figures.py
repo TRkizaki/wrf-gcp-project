@@ -22,7 +22,10 @@ OUT_DIR.mkdir(exist_ok=True)
 
 def load() -> pd.DataFrame:
     df = pd.read_csv(CSV_PATH)
-    df["short_id"] = df["run_id"].apply(lambda s: s.split("T")[0][-2:] + "-" + s.split("-")[1][:5])
+    df["short_id"] = df.apply(
+        lambda r: f"r{r.name + 1}-{r['machine_type'].split('-')[-1]}vc-{'sp' if r['spot'] else 'od'}",
+        axis=1,
+    )
     return df
 
 
@@ -33,7 +36,7 @@ def fig1_cost_per_run(df: pd.DataFrame) -> None:
     ax.set_ylabel("Cost (USD)")
     ax.set_xlabel("Run")
     ax.set_title("Cost per run — preempted runs highlighted in red")
-    ax.set_xticklabels(df["short_id"], rotation=30, ha="right")
+    plt.xticks(rotation=30, ha="right")
     plt.tight_layout()
     plt.savefig(OUT_DIR / "fig1_cost_per_run.png", dpi=150)
     plt.close()
@@ -55,7 +58,7 @@ def fig2_wallclock_breakdown(df: pd.DataFrame) -> None:
     ax.set_xlabel("Run")
     ax.set_title("Wallclock breakdown by phase")
     ax.legend()
-    ax.set_xticklabels(sub["short_id"], rotation=30, ha="right")
+    plt.xticks(rotation=30, ha="right")
     plt.tight_layout()
     plt.savefig(OUT_DIR / "fig2_wallclock_breakdown.png", dpi=150)
     plt.close()
